@@ -72,6 +72,110 @@ Development-Guide/
 - **빌드**: `mvn clean package`
 - **실행**: `java -jar target/vault-java-app.jar`
 
+## 🔌 Vault API 종류 및 용도
+
+이 가이드에서 사용되는 주요 Vault API들을 소개합니다.
+
+### 1. **인증 API (Authentication APIs)**
+
+#### AppRole 인증
+- **엔드포인트**: `POST /v1/auth/approle/login`
+- **용도**: 애플리케이션이 Vault에 로그인하여 클라이언트 토큰 획득
+- **요청 데이터**: `role_id`, `secret_id`
+- **응답**: `client_token`, `lease_duration`
+
+```json
+{
+  "role_id": "your-role-id",
+  "secret_id": "your-secret-id"
+}
+```
+
+#### 토큰 갱신
+- **엔드포인트**: `POST /v1/auth/token/renew-self`
+- **용도**: 만료되기 전에 클라이언트 토큰 갱신
+- **헤더**: `X-Vault-Token: <client_token>`
+- **응답**: 새로운 `lease_duration`
+
+### 2. **시크릿 엔진 API (Secret Engine APIs)**
+
+#### KV v2 시크릿 엔진
+- **엔드포인트**: `GET /v1/{mount-path}/data/{secret-path}`
+- **용도**: 정적 키-값 시크릿 저장 및 조회
+- **특징**: 버전 관리, 메타데이터 포함
+- **응답 구조**:
+```json
+{
+  "data": {
+    "data": {
+      "username": "dbuser",
+      "password": "secretpassword"
+    },
+    "metadata": {
+      "version": 1,
+      "created_time": "2024-01-01T00:00:00Z"
+    }
+  }
+}
+```
+
+#### Database Dynamic 시크릿 엔진
+- **엔드포인트**: `GET /v1/{mount-path}/creds/{role-name}`
+- **용도**: 동적으로 생성되는 임시 데이터베이스 자격증명
+- **특징**: TTL 기반 자동 만료, Lease ID 관리
+- **응답 구조**:
+```json
+{
+  "data": {
+    "username": "v-approle-db-demo-dy-abc123",
+    "password": "xyz789"
+  },
+  "lease_id": "lease-abc123",
+  "lease_duration": 3600
+}
+```
+
+#### Database Static 시크릿 엔진
+- **엔드포인트**: `GET /v1/{mount-path}/static-creds/{role-name}`
+- **용도**: 정적으로 관리되는 데이터베이스 자격증명
+- **특징**: 수동 갱신, 장기간 유효
+- **응답 구조**:
+```json
+{
+  "data": {
+    "username": "myapp-static-user",
+    "password": "static-password"
+  },
+  "ttl": 3600
+}
+```
+
+### 3. **Lease 관리 API (Lease Management APIs)**
+
+#### Lease 상태 확인
+- **엔드포인트**: `GET /v1/sys/leases/lookup`
+- **용도**: 특정 Lease의 상태 및 TTL 확인
+- **헤더**: `X-Vault-Token: <client_token>`
+- **요청 데이터**: `lease_id`
+
+#### Lease 갱신
+- **엔드포인트**: `PUT /v1/sys/leases/renew`
+- **용도**: Database Dynamic 시크릿의 Lease 갱신
+- **헤더**: `X-Vault-Token: <client_token>`
+- **요청 데이터**: `lease_id`, `increment` (선택사항)
+
+### 4. **시스템 API (System APIs)**
+
+#### Vault 상태 확인
+- **엔드포인트**: `GET /v1/sys/health`
+- **용도**: Vault 서버 상태 및 가용성 확인
+- **응답**: 서버 상태, 버전 정보
+
+#### 토큰 정보 조회
+- **엔드포인트**: `GET /v1/auth/token/lookup-self`
+- **용도**: 현재 토큰의 정보 및 만료 시간 확인
+- **헤더**: `X-Vault-Token: <client_token>`
+
 ## 🚀 빠른 시작
 
 ### 1. Vault 서버 설정
