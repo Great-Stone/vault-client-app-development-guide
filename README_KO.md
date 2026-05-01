@@ -16,11 +16,23 @@
 
 ### 필수 동작 요구사항
 
+#### 인증
 - C, C++, Java, Python, Spring Boot, Tomcat 예제는 AppRole 인증을 사용합니다.
 - AppRole 인증 후 App은 Vault로부터 Token을 받습니다.
 - Token은 고유 권한이 부여되어 있으며, Web session처럼 만료 시간이 있습니다.
-- Token은 만료되기 전에, 마치 브라우저에서 갱신하거나 특정 동작을 하면 Session 시간이 초기회 되는 것처럼 Token에 대해 Renewal 해야 합니다.
+- Token은 만료되기 전에, 마치 브라우저에서 갱신하거나 특정 동작을 하면 Session 시간이 초기화되는 것처럼 Token에 대해 Renewal 해야 합니다.
 - Renewal이 실패하면 Vault로의 접근이 불가능합니다.
+- 예제에서 제시된 인증 외에 다른 인증 방법을 사용하는 경우, 최초 인증 방식만 변경될 뿐 Token 관리는 동일합니다.
+  - AWS IAM, Azure AD, Google OAuth, Cert, Kubernetes Service Account 인증 등
+  - 관련 링크 : <https://developer.hashicorp.com/vault/api-docs/auth>
+
+#### 시크릿
+- KV 시크릿(고정 값)을 사용하는 경우에도 Vault 내에서 변경이 발생하면 갱신될 수 있도록 고려해야 합니다.
+- Dynamic, Static, PKI 같은 시크릿을 사용하는 경우 Vault로부터 받은 시크릿은 TTL 기반으로 만료되므로, 만료 이전에 갱신하도록 고려되어야 합니다.
+- 예제에서 제시된 시크릿 외에 다른 시크릿 방법을 사용하는 경우에도 REST API의 사용 패턴은 동일합니다.
+  - 관련 링크 : <https://developer.hashicorp.com/vault/api-docs/secret>
+
+
 
 ### Token Renewal 예외 사항
 

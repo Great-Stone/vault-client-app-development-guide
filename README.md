@@ -16,11 +16,21 @@ This guide covers how to securely manage secrets in applications using Vault. It
 
 ### Mandatory Operational Requirements
 
+#### Authentication
 - The C, C++, Java, Python, Spring Boot, and Tomcat examples use AppRole authentication.
 - After AppRole authentication, the app receives a token from Vault.
 - The token has specific permissions and an expiration time, similar to a web session.
-- The token must be renewed before it expires, much like a browser session is renewed upon activity.
+- The token must be renewed before it expires, much like a browser session timeout resets on activity.
 - If renewal fails, access to Vault is denied.
+- If you use a different authentication method than the examples, only the initial login changes; token management is the same.
+  - Examples include AWS IAM, Azure AD, Google OAuth, TLS certificate, and Kubernetes service account authentication.
+  - Reference: <https://developer.hashicorp.com/vault/api-docs/auth>
+
+#### Secrets
+- Even for KV secrets (static values), design the app so it can pick up changes made in Vault.
+- For Dynamic, Static Role, PKI, and other TTL-backed secrets, renew or replace them before they expire.
+- If you use secret engines other than those in the examples, the REST API usage pattern is the same.
+  - Reference: <https://developer.hashicorp.com/vault/api-docs/secret>
 
 ### Token Renewal Exceptions
 
